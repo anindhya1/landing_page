@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Symphony</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 1000;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        header p {
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+        #animation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            z-index: 0;
+        }
+        #task-filter {
+            position: absolute;
+            left: 10px;
+            top: 50px;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+        }
+        #task-filter button {
+            display: block;
+            margin: 5px 0;
+            padding: 5px 10px;
+            border: none;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #task-filter button:hover {
+            background-color: #555;
+        }
+        .node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffcc00;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px #ffcc00;
+        }
+        .connection {
+            position: absolute;
+            height: 0.5px;
+            background: linear-gradient(90deg, #ffcc00, #ff0066);
+            transform-origin: top left;
+            opacity: 0;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+            }
+        }
+        @keyframes glow {
+            0% {
+                opacity: 0;
+                box-shadow: none;
+            }
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 15px #ffcc00;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Symphony</h1>
+        <p>Witness AI agents working in harmony</p>
+    </header>
+    <div id="task-filter">
+        <button onclick="filterNodes('all')">All Tasks</button>
+        <button onclick="filterNodes('task1')">Task 1</button>
+        <button onclick="filterNodes('task2')">Task 2</button>
+        <button onclick="filterNodes('task3')">Task 3</button>
+    </div>
+    <div id="animation-container"></div>
+
+    <script>
+        const container = document.getElementById('animation-container');
+        const numNodes = 100;
+        const tasks = ['task1', 'task2', 'task3'];
+        const nodes = [];
+        const connections = [];
+
+        function randomPosition() {
+            return {
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight
+            };
+        }
+
+        function randomTask() {
+            return tasks[Math.floor(Math.random() * tasks.length)];
+        }
+
+        function randomColor() {
+            const colors = ['#ffcc00', '#ff0066', '#00ccff', '#66ff66', '#cc66ff'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function createNode() {
+            const pos = randomPosition();
+            const color = randomColor();
+            const task = randomTask();
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.dataset.task = task;
+            node.style.left = `${pos.x}px`;
+            node.style.top = `${pos.y}px`;
+            node.style.backgroundColor = color;
+            node.style.boxShadow = `0 0 10px ${color}`;
+            container.appendChild(node);
+            nodes.push({ element: node, pos, task });
+            return { pos, task, element: node };
+        }
+
+        function createConnection(node1, node2) {
+            const connection = document.createElement('div');
+            connection.className = 'connection';
+            const dx = node2.pos.x - node1.pos.x;
+            const dy = node2.pos.y - node1.pos.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            connection.style.width = `${length}px`;
+            connection.style.left = `${node1.pos.x}px`;
+            connection.style.top = `${node1.pos.y}px`;
+            connection.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+            connection.style.background = `linear-gradient(90deg, ${node1.element.style.backgroundColor}, ${node2.element.style.backgroundColor})`;
+            connection.style.animation = `glow ${2 + Math.random() * 2}s infinite alternate`;
+            container.appendChild(connection);
+            connections.push({ connection, nodes: [node1, node2] });
+        }
+
+        function filterNodes(task) {
+            nodes.forEach(({ element, task: nodeTask }) => {
+                if (task === 'all' || nodeTask === task) {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
+            });
+
+            connections.forEach(({ connection, nodes }) => {
+                if (
+                    task === 'all' ||
+                    (nodes[0].element.dataset.task === task && nodes[1].element.dataset.task === task)
+                ) {
+                    connection.style.display = 'block';
+                } else {
+                    connection.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize nodes
+        const nodeObjects = Array.from({ length: numNodes }, createNode);
+
+        // Create random connections
+        for (let i = 0; i < nodeObjects.length; i++) {
+            for (let j = i + 1; j < nodeObjects.length; j++) {
+                if (Math.random() > 0.98) {
+                    createConnection(nodeObjects[i], nodeObjects[j]);
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            container.innerHTML = '';
+            nodes.length = 0;
+            connections.length = 0;
+            const newNodeObjects = Array.from({ length: numNodes }, createNode);
+            for (let i = 0; i < newNodeObjects.length; i++) {
+                for (let j = i + 1; j < newNodeObjects.length; j++) {
+                    if (Math.random() > 0.98) {
+                        createConnection(newNodeObjects[i], newNodeObjects[j]);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
