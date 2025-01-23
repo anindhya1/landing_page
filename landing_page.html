@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Symphony - Landing Page</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0f0f0f;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Toolbar Styles */
+        #toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #toolbar h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        #task-filter {
+            display: flex;
+            gap: 10px;
+        }
+
+        #task-filter button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #task-filter button:hover, #task-filter button.active {
+            background-color: #555;
+        }
+
+        #orchestrate-section {
+            position: absolute;
+            top: 30%;
+            left: 10%;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        #orchestrate-title {
+            font-size: 4rem;
+            font-weight: bold;
+        }
+
+        #orchestrate-search {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #orchestrate-search input {
+            width: 800px;
+            padding: 10px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        #orchestrate-search button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        #orchestrate-search button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #orchestrate-search svg {
+            fill: white;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Mission Section */
+        #mission-section {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            width: 80%;
+            color: white;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            padding: 20px;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        #mission-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        #mission-content {
+            margin-top: 10px;
+        }
+
+        /* Legend */
+        #legend {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #legend strong {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Node and Connection Styles */
+        .node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255, 204, 0, 0.3);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+        }
+
+        .node-label {
+            position: absolute;
+            font-size: 12px;
+            color: white;
+            transform: translate(15px, -5px);
+            display: none;
+        }
+
+        .connection {
+            position: absolute;
+            height: 0.5px;
+            background: linear-gradient(90deg, rgba(255, 204, 0, 0.1), rgba(255, 0, 102, 0.1));
+            transform-origin: top left;
+            opacity: 0;
+        }
+
+        .connection.active {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes glow {
+            0% {
+                opacity: 0;
+                box-shadow: none;
+            }
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+            }
+        }
+
+        /* Overlay and Search Bar */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            z-index: 1400;
+        }
+
+        #search-bar {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: white;
+            display: none;
+            z-index: 1500;
+        }
+
+        #search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            color: black;
+            font-size: 1rem;
+        }
+
+        /* Animation Container */
+        #animation-container {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <h3>AI Symphony</h3>
+        <div id="task-filter">
+            <button onclick="filterNodes('all')" class="active">All</button>
+            <button onclick="filterNodes('Customer')">Customer</button>
+            <button onclick="filterNodes('Engineer')">Engineer</button>
+            <button onclick="filterNodes('Manager')">Manager</button>
+            <button onclick="filterNodes('Product Team')">Product Team</button>
+            <button onclick="filterNodes('Customer Service')">Customer Service</button>
+        </div>
+    </div>
+
+    <!-- Orchestrate Section -->
+    <div id="orchestrate-section">
+        <div id="orchestrate-title">Orchestrate Agent Communications</div>
+        <div id="orchestrate-search">
+            <input type="text" placeholder="Enter a task or goal for the agents...">
+            <button>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" stroke="white" stroke-width="2" fill="none"></circle>
+                    <line x1="17" y1="17" x2="21" y2="21" stroke="white" stroke-width="2"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mission Section -->
+    <div id="mission-section">
+        <div id="mission-title">Revolutionizing Software Interoperability</div>
+        <div id="mission-content">
+            AI Agents are redefining collaboration by seamlessly coordinating tasks across platforms. <br>
+            Focus on task. Command Automated Agents.
+            This is the future of interconnected workflows.
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend">
+        <strong>Legend:</strong>
+        <p><span style="color:rgba(255, 204, 0, 0.5);">&#9679;</span> Customer</p>
+        <p><span style="color:rgba(255, 0, 102, 0.5);">&#9679;</span> Engineer</p>
+        <p><span style="color:rgba(0, 204, 255, 0.5);">&#9679;</span> Manager</p>
+        <p><span style="color:rgba(102, 255, 102, 0.5);">&#9679;</span> Product Team</p>
+        <p><span style="color:rgba(204, 102, 255, 0.5);">&#9679;</span> Customer Service</p>
+    </div>
+
+    <!-- Animation Container -->
+    <div id="animation-container"></div>
+
+    <!-- Overlay and Search Bar -->
+    <div id="overlay"></div>
+    <div id="search-bar">
+        <input type="text" placeholder="Enter a task or goal for the agents...">
+    </div>
+
+    <script>
+        const container = document.getElementById('animation-container');
+        const overlay = document.getElementById('overlay');
+        const searchBar = document.getElementById('search-bar');
+        const orchestrateSection = document.getElementById('orchestrate-section');
+        const missionSection = document.getElementById('mission-section');
+        const legend = document.getElementById('legend');
+        const numNodes = 100;
+        const roles = ['Customer', 'Engineer', 'Manager', 'Product Team', 'Customer Service'];
+        const colors = {
+            'Customer': 'rgba(255, 204, 0, 0.5)',
+            'Engineer': 'rgba(255, 0, 102, 0.5)',
+            'Manager': 'rgba(0, 204, 255, 0.5)',
+            'Product Team': 'rgba(102, 255, 102, 0.5)',
+            'Customer Service': 'rgba(204, 102, 255, 0.5)'
+        };
+        const nodes = [];
+        const connections = [];
+
+        function randomPosition() {
+            return {
+                x: Math.random() * (window.innerWidth - 250) + 250,
+                y: Math.random() * (window.innerHeight - 150) + 150
+            };
+        }
+
+        function randomRole() {
+            return roles[Math.floor(Math.random() * roles.length)];
+        }
+
+        function createNode() {
+            const pos = randomPosition();
+            const role = randomRole();
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.dataset.role = role;
+            node.style.left = `${pos.x}px`;
+            node.style.top = `${pos.y}px`;
+            node.style.backgroundColor = colors[role];
+            node.style.boxShadow = `0 0 10px ${colors[role]}`;
+            container.appendChild(node);
+
+            const label = document.createElement('div');
+            label.className = 'node-label';
+            label.innerText = `${Math.random() > 0.5 ? 'John Doe' : 'Jane Smith'}\n${role}`;
+            label.style.left = `${pos.x}px`;
+            label.style.top = `${pos.y}px`;
+            container.appendChild(label);
+
+            nodes.push({ element: node, label, pos, role });
+            return { pos, role, element: node, label };
+        }
+
+        function createConnection(node1, node2) {
+            const connection = document.createElement('div');
+            connection.className = 'connection';
+            const dx = node2.pos.x - node1.pos.x;
+            const dy = node2.pos.y - node1.pos.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            connection.style.width = `${length}px`;
+            connection.style.left = `${node1.pos.x}px`;
+            connection.style.top = `${node1.pos.y}px`;
+            connection.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+            connection.style.background = `linear-gradient(90deg, ${node1.element.style.backgroundColor}, ${node2.element.style.backgroundColor})`;
+            connection.style.animation = `glow ${2 + Math.random() * 2}s infinite alternate`;
+            container.appendChild(connection);
+            connections.push({ connection, nodes: [node1, node2] });
+        }
+
+        function filterNodes(role) {
+            document.querySelectorAll('#task-filter button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`#task-filter button[onclick="filterNodes('${role}')"]`).classList.add('active');
+
+            nodes.forEach(({ element, label, role: nodeRole }) => {
+                const visible = role === 'all' || nodeRole === role;
+                element.style.display = visible ? 'block' : 'none';
+                label.style.display = visible && role !== 'all' ? 'block' : 'none';
+            });
+
+            connections.forEach(({ connection, nodes }) => {
+                const [node1, node2] = nodes;
+                const visible = role === 'all' || (node1.role === role && node2.role === role);
+                connection.style.display = visible ? 'block' : 'none';
+            });
+
+            if (role === 'all') {
+                orchestrateSection.style.opacity = '1';
+                missionSection.style.opacity = '1';
+                legend.style.opacity = '0';
+            } else {
+                orchestrateSection.style.opacity = '0';
+                missionSection.style.opacity = '0';
+                legend.style.opacity = '1';
+            }
+        }
+
+        function orchestrateAgents() {
+            overlay.style.display = 'block';
+            searchBar.style.display = 'block';
+            const input = searchBar.querySelector('input');
+            input.focus();
+
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    const prompt = input.value;
+                    searchBar.style.display = 'none';
+                    overlay.style.display = 'none';
+                    alert(`Task assigned: ${prompt}`);
+                }
+            });
+        }
+
+        // Initialize nodes
+        const nodeObjects = Array.from({ length: numNodes }, createNode);
+
+        // Create connections between nodes
+        for (let i = 0; i < nodeObjects.length; i++) {
+            for (let j = i + 1; j < nodeObjects.length; j++) {
+                if (Math.random() > 0.98) {
+                    createConnection(nodeObjects[i], nodeObjects[j]);
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            container.innerHTML = '';
+            nodes.length = 0;
+            connections.length = 0;
+            const newNodeObjects = Array.from({ length: numNodes }, createNode);
+            for (let i = 0; i < newNodeObjects.length; i++) {
+                for (let j = i + 1; j < newNodeObjects.length; j++) {
+                    if (Math.random() > 0.98) {
+                        createConnection(newNodeObjects[i], newNodeObjects[j]);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
