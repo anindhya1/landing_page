@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>AI Symphony</title>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+   <style>
+       * {margin: 0; padding: 0; box-sizing: border-box;}
+       body {
+           background-color: black;
+           min-height: 100vh;
+           overflow: hidden;
+           font-family: -apple-system, system-ui, sans-serif;
+       }
+       #gradient-background {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           z-index: -1;
+       }
+       .nav {
+           position: fixed;
+           width: 100%;
+           padding: 1rem 2rem;
+           background: rgba(0,0,0,0.8);
+           backdrop-filter: blur(10px);
+           z-index: 100;
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+       }
+       .nav-logo {
+           font-size: 1.5rem;
+           font-weight: bold;
+           color: white;
+       }
+       .nav-links {
+           display: flex;
+           gap: 1.5rem;
+       }
+       .nav-links button {
+           background: none;
+           border: none;
+           color: rgba(255,255,255,0.7);
+           cursor: pointer;
+           font-size: 16px;
+           padding: 8px 16px;
+           transition: color 0.3s;
+       }
+       .nav-links button:hover {color: white;}
+       .content-fade {
+           opacity: 0;
+           transition: opacity 0.5s;
+           pointer-events: none;
+       }
+       .hero {
+           min-height: 100vh;
+           padding: 0 2rem;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           text-align: center;
+           position: relative;
+           z-index: 1;
+       }
+       .hero-content {max-width: 600px;}
+       .hero-headline {
+           font-size: 48px;
+           font-weight: 600;
+           color: white;
+           margin-bottom: 16px;
+           line-height: 1.1;
+       }
+       .hero-subheadline {margin-bottom: 40px;}
+       .hero-subheadline .line1 {
+           font-size: 24px;
+           color: rgba(255,255,255,0.7);
+           display: block;
+           margin-bottom: 8px;
+       }
+       .search-container {
+           display: flex;
+           max-width: 800px;
+           margin: 0 auto;
+           box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+           border-radius: 12px;
+       }
+       .search-input {
+           flex-grow: 1;
+           padding: 16px 20px;
+           background: rgba(255,255,255,0.1);
+           border: 1px solid rgba(255,255,255,0.2);
+           border-radius: 12px 0 0 12px;
+           color: white;
+           font-size: 17px;
+       }
+       .search-input::placeholder {color: rgba(255,255,255,0.5);}
+       .search-input:focus {
+           outline: none;
+           border-color: #0071e3;
+       }
+       .search-button {
+           padding: 16px 32px;
+           background: #0071e3;
+           color: white;
+           border: none;
+           border-radius: 0 12px 12px 0;
+           font-size: 17px;
+           font-weight: 500;
+           cursor: pointer;
+       }
+       .search-button:hover {background: #0077ED;}
+   </style>
+</head>
+<body>
+   <canvas id="gradient-background"></canvas>
+   <nav class="nav">
+       <div class="nav-logo">AI Symphony</div>
+       <div class="nav-links">
+           <button onclick="handleZoom()">Features</button>
+           <button onclick="handleZoom()">Use Cases</button>
+           <button onclick="handleZoom()">FAQs</button>
+       </div>
+   </nav>
+
+   <section class="hero">
+       <div class="hero-content">
+           <h1 class="hero-headline">Orchestrate Agent Communications and Workflows</h1>
+           <p class="hero-subheadline">
+               <span class="line1">Translate urgency into ruthless productivity</span>
+           </p>
+           <div class="search-container">
+               <input type="text" class="search-input" placeholder="Enter a task or goal for the agents...">
+               <button class="search-button" onclick="orchestrateAgents()">Orchestrate</button>
+           </div>
+           <div style="position: fixed; bottom: 20px; left: 0; right: 0; text-align: center;">
+               <h2 style="color: white; font-size: 18px; font-weight: 600;">Your AI Chief Operating Officer</h2>
+               <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 4px;">Build, Scale, and Automate Your Business with AI Agents</p>
+           </div>
+       </div>
+   </section>
+
+   <script>
+       const canvas = document.getElementById('gradient-background');
+       const ctx = canvas.getContext('2d');
+       const simplex = new SimplexNoise();
+       
+       canvas.width = window.innerWidth;
+       canvas.height = window.innerHeight;
+       
+       const scl = 20;
+       const cols = Math.floor(canvas.width / scl);
+       const rows = Math.floor(canvas.height / scl);
+       let time = 0;
+
+       function lerp(start, end, amt) {
+           return (1 - amt) * start + amt * end;
+       }
+
+       class Particle {
+           constructor() {
+               this.resetPosition();
+               this.maxSpeed = 1.5;
+               this.strokeWeight = Math.random() * 3 + 2;
+               const hue = Math.random() > 0.6 ? '230' : '280';
+               this.color = `hsla(${hue}, 85%, 75%, 0.05)`;
+               this.curvature = 0;
+           }
+
+           resetPosition() {
+               this.pos = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+               this.vel = { x: 0, y: 0 };
+               this.acc = { x: 0, y: 0 };
+               this.prevPos = { x: this.pos.x, y: this.pos.y };
+               this.points = [{ x: this.pos.x, y: this.pos.y }];
+           }
+
+           update(flowField) {
+               this.points.push({ x: this.pos.x, y: this.pos.y });
+               if (this.points.length > 5) this.points.shift();
+               
+               const x = Math.floor(this.pos.x / scl);
+               const y = Math.floor(this.pos.y / scl);
+               const index = x + y * cols;
+
+               if (flowField[index]) {
+                   this.acc.x = flowField[index].x;
+                   this.acc.y = flowField[index].y;
+               }
+
+               this.vel.x = lerp(this.vel.x, this.acc.x, 0.1);
+               this.vel.y = lerp(this.vel.y, this.acc.y, 0.1);
+
+               this.pos.x += this.vel.x * this.maxSpeed;
+               this.pos.y += this.vel.y * this.maxSpeed;
+
+               if (this.pos.x < 0 || this.pos.x > canvas.width || 
+                   this.pos.y < 0 || this.pos.y > canvas.height) {
+                   this.resetPosition();
+               }
+           }
+
+           draw() {
+               if (this.points.length < 3) return;
+               
+               ctx.beginPath();
+               ctx.strokeStyle = this.color;
+               ctx.lineWidth = this.strokeWeight;
+               ctx.lineCap = 'round';
+               ctx.lineJoin = 'round';
+
+               ctx.moveTo(this.points[0].x, this.points[0].y);
+               for (let i = 1; i < this.points.length - 1; i++) {
+                   const xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                   const yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                   ctx.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+               }
+               ctx.stroke();
+           }
+       }
+
+       const particles = Array(10000).fill().map(() => new Particle());
+
+       function createFlowField() {
+           const field = new Array(cols * rows);
+           const noiseScale = 0.003;
+           for (let y = 0; y < rows; y++) {
+               for (let x = 0; x < cols; x++) {
+                   const angle = simplex.noise3D(x * noiseScale, y * noiseScale, time * 0.0002) * Math.PI * 4;
+                   field[x + y * cols] = {
+                       x: Math.cos(angle) * 0.5,
+                       y: Math.sin(angle) * 0.5
+                   };
+               }
+           }
+           return field;
+       }
+
+       function animate() {
+           ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+           ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+           const flowField = createFlowField();
+           particles.forEach(p => {
+               p.update(flowField);
+               p.draw();
+           });
+
+           time++;
+           requestAnimationFrame(animate);
+       }
+
+       window.addEventListener('resize', () => {
+           canvas.width = window.innerWidth;
+           canvas.height = window.innerHeight;
+       });
+
+       animate();
+
+       const searchInput = document.querySelector('.search-input');
+       const prompts = [
+           "Analyze market opportunities in renewable energy",
+           "Develop customer acquisition strategy for Q2",
+           "Optimize supply chain efficiency",
+           "Scale operations across APAC region",
+           "Build high-performing sales team",
+           "Automate customer support workflows",
+           "Create financial forecasting model",
+           "Design product roadmap for 2025",
+           "Streamline hiring process",
+           "Launch marketing campaign in new markets",
+           "Reduce operational costs by 20%",
+           "Implement data-driven decision framework"
+       ];
+
+       let currentPromptIndex = 0, currentCharIndex = 0, isDeleting = false;
+       const typingSpeed = 50, deletingSpeed = 30, pauseBeforeDelete = 2000, pauseBeforeNewPrompt = 500;
+
+       function typeEffect() {
+           const currentPrompt = prompts[currentPromptIndex];
+           if (isDeleting) {
+               searchInput.placeholder = currentPrompt.substring(0, currentCharIndex - 1);
+               currentCharIndex--;
+               if (currentCharIndex === 0) {
+                   isDeleting = false;
+                   currentPromptIndex = (currentPromptIndex + 1) % prompts.length;
+                   setTimeout(typeEffect, pauseBeforeNewPrompt);
+                   return;
+               }
+               setTimeout(typeEffect, deletingSpeed);
+           } else {
+               searchInput.placeholder = currentPrompt.substring(0, currentCharIndex + 1);
+               currentCharIndex++;
+               if (currentCharIndex === currentPrompt.length) {
+                   isDeleting = true;
+                   setTimeout(typeEffect, pauseBeforeDelete);
+                   return;
+               }
+               setTimeout(typeEffect, typingSpeed);
+           }
+       }
+
+       typeEffect();
+   </script>
+</body>
+</html>
